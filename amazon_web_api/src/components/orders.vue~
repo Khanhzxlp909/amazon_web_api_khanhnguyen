@@ -1,0 +1,82 @@
+<script setup>
+import { ref } from 'vue';
+import axios from 'axios';
+
+// Form inputs
+const marketplaceId = ref('ATVPDKIKX0DER');
+const createdAfter = ref('');
+const maxResultsPerPage = ref(2);
+
+// API response data
+const orders = ref([]);
+const error = ref(null);
+
+// Fetch data from API
+const fetchOrders = async () => {
+  error.value = null; // Reset error
+  try {
+    const response = await axios.get('https://sellingpartnerapi-na.amazon.com/orders/v0/orders', {
+      params: {
+        MarketplaceIds: marketplaceId.value,
+        CreatedAfter: createdAfter.value,
+        MaxResultsPerPage: maxResultsPerPage.value,
+      },
+      headers: {
+        'Accept': 'application/json',
+        'x-amz-access-token': 'Atza|IwEBIMMLlUpn4eaV2Mez8pANGk5YU8Csaaji1xcXGYPmovulDyr86emNqQDN2cKHYIdXGlZe2VtE-X0pHWCK3XiQW-jOfhJ9VyTzasVIlAD3kaO07w5LUOWsu4EvCU-FyUEj_ZqXRP91tkvRfK16l04E_OGMksCnF0GFlLHdCKFkoVefUwKITkIIpvH1LID5S6zOe0v23JgHKkV4nB26cI0KLj_vIDJryO8T_Prny2wx75HRHkPPKTxEMLgol_lPo4IVdam9Gf9Bn5gXLcIYdZnnt5ztD91qqG1F5X9Cz6m7vQuJArVdsXy6o2wlJ0fx8jGs27eo2uBI5wWToIupE0SS9py0'
+      }
+    });
+    orders.value = response.data; // Store API response
+  } catch (err) {
+    error.value = err.message; // Handle errors
+  }
+};
+</script>
+
+<template>
+  <div>
+    <h1>Fetch Amazon Orders</h1>
+    <form @submit.prevent="fetchOrders">
+      <label for="marketplaceId">Marketplace ID:</label>
+      <input type="text" id="marketplaceId" v-model="marketplaceId" />
+
+      <label for="createdAfter">Created After:</label>
+      <input type="date" id="createdAfter" v-model="createdAfter" />
+
+      <label for="maxResultsPerPage">Max Results Per Page:</label>
+      <input type="number" id="maxResultsPerPage" v-model="maxResultsPerPage" />
+
+      <button type="submit">Fetch Orders</button>
+    </form>
+
+    <div v-if="error" class="error">
+      <p>Error: {{ error }}</p>
+    </div>
+
+    <div v-if="orders.length">
+      <h2>Orders</h2>
+      <ul>
+        <li v-for="order in orders" :key="order.AmazonOrderId">
+          <p><strong>Order ID:</strong> {{ order.AmazonOrderId }}</p>
+          <p><strong>Purchase Date:</strong> {{ order.PurchaseDate }}</p>
+          <p><strong>Status:</strong> {{ order.OrderStatus }}</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+form {
+  margin-bottom: 20px;
+}
+form label {
+  margin-right: 10px;
+}
+form input {
+  margin-right: 20px;
+}
+.error {
+  color: red;
+}
+</style>
