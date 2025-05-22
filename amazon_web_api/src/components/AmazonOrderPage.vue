@@ -5,63 +5,71 @@
     <div v-if="loading" class="text-blue-500 font-medium">Loading orders...</div>
 
     <!-- Orders Table -->
-    <div v-if="orders.length" class="overflow-x-auto">
-      <table class="min-w-full table-auto border border-gray-300 text-sm" border="1">
-        <thead class="bg-gray-100 text-gray-700 font-semibold">
+    <div v-if="orders.length" class="overflow-auto" style="height: 1000px; overflow-y: hidden;">
+      <table class="table table-striped table-bordered table-lg" style="width: 1200px;">
+        <thead style="background-color: #3498db; color: white;">
           <tr>
-            <th v-for="(value, key) in orders[0].summary" :key="key" class="px-4 py-2 border">
+            <th v-for="(value, key) in orders[0].summary" :key="key" class="align-middle">
               {{ key }}
             </th>
-            <th v-for="(value, key) in orders[0].items[0]" :key="'item-' + key" class="px-4 py-2 border">
+            <th v-for="(value, key) in orders[0].items[0]" :key="'item-' + key" class="align-middle">
               Item {{ key }}
             </th>
-            <th class="px-4 py-2 border">State/Region</th>
-            <th class="px-4 py-2 border">Postal Code</th>
-            <th class="px-4 py-2 border">City</th>
-            <th class="px-4 py-2 border">Country Code</th>
+            <th class="align-middle">
+              State/Region
+            </th>
+            <th class="align-middle">
+              Postal Code
+            </th>
+            <th class="align-middle">
+              City
+            </th>
+            <th class="align-middle">
+              Country Code
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="order in orders"
-            :key="order.summary.AmazonOrderId"
-            class="hover:bg-gray-50"
-          >
-            <td
-              v-for="(value, key) in order.summary"
-              :key="key"
-              class="px-4 py-2 border"
-            >
-              <span v-if="typeof value === 'object'">
-                {{ formatNestedObject(value) }}
-              </span>
-              <span v-else>
-                {{ value }}
-              </span>
+          <tr v-for="order in orders" :key="order.summary.AmazonOrderId">
+            <td v-for="(value, key) in order.summary" :key="key" class="align-middle">
+              <div class="text-sm text-gray-900">
+                <span v-if="typeof value === 'object'">
+                  {{ formatNestedObject(value) }}
+                </span>
+                <span v-else>
+                  {{ value }}
+                </span>
+              </div>
             </td>
-            <td
-              v-for="(value, key) in order.items[0]"
-              :key="'item-' + key"
-              class="px-4 py-2 border"
-            >
-              <span v-if="typeof value === 'object'">
-                {{ formatNestedObject(value) }}
-              </span>
-              <span v-else>
-                {{ value }}
-              </span>
+            <td v-for="(value, key) in order.items[0]" :key="'item-' + key" class="align-middle">
+              <div class="text-sm text-gray-900">
+                <span v-if="typeof value === 'object'">
+                  {{ formatNestedObject(value) }}
+                </span>
+                <span v-else>
+                  {{ value }}
+                </span>
+              </div>
             </td>
-            <td class="px-4 py-2 border">
-              {{ order.summary.ShippingAddress?.StateOrRegion || 'N/A' }}
+            <td class="align-middle">
+              <div class="text-sm text-gray-900">
+                {{ order.summary.ShippingAddress?.StateOrRegion || 'N/A' }}
+              </div>
             </td>
-            <td class="px-4 py-2 border">
-              {{ order.summary.ShippingAddress?.PostalCode || 'N/A' }}
+            <td class="align-middle">
+              <div class="text-sm text-gray-900">
+                {{ order.summary.ShippingAddress?.PostalCode || 'N/A' }}
+              </div>
             </td>
-            <td class="px-4 py-2 border">
-              {{ order.summary.ShippingAddress?.City || 'N/A' }}
+            <td class="align-middle">
+              <div class="text-sm text-gray-900">
+                {{ order.summary.ShippingAddress?.City || 'N/A' }}
+              </div>
             </td>
-            <td class="px-4 py-2 border">
-              {{ order.summary.ShippingAddress?.CountryCode || 'N/A' }}
+            <td class="align-middle">
+              <div class="text-sm text-gray-900">
+                {{ order.summary.ShippingAddress?.CountryCode || 'N/A' }}
+              </div>
             </td>
           </tr>
         </tbody>
@@ -144,6 +152,8 @@ export default {
 </script>
 
 <style scoped>
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
 body {
   font-family: "Inter", sans-serif;
 }
