@@ -8,6 +8,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
@@ -38,33 +40,34 @@ public class AmazonOrderController {
         try {
             do {
                 UriComponentsBuilder builder;
+                String fetchUrl;
 
                 if (nextToken == null) {
                     builder = UriComponentsBuilder.fromHttpUrl(BASE_URL + "/orders/v0/orders")
                             .queryParam("MarketplaceIds", "ATVPDKIKX0DER")
-                            .queryParam("CreatedAfter", "2024-01-01T00:00:00Z")
+                            .queryParam("CreatedAfter", "2012-01-01T00:00:00Z")
                             .queryParam("MaxResultsPerPage", 100);
+                    fetchUrl = builder.toUriString();
                 } else {
-                    builder = UriComponentsBuilder.fromHttpUrl(BASE_URL + "/orders/v0/orders")
-                            .queryParam("NextToken", nextToken);  // DO NOT encode manually
-                    System.out.println(builder.toUriString());
+                    builder = UriComponentsBuilder.fromHttpUrl(BASE_URL + "/orders/v0/orders/next")
+                            .queryParam("NextToken", nextToken);
+                    fetchUrl = builder.toUriString();
                 }
 
-                ResponseEntity<Map> response = restTemplate.exchange(
-                        builder.toUriString(), HttpMethod.GET, entity, Map.class
-                );
-                Map<String, Object> payloads = (Map<String, Object>) response.getBody().get("payload");
-                if (payloads == null) break;
+                System.out.println("➡️ Fetching: " + fetchUrl);
 
-                nextToken = (String) payloads.get("NextToken");
-                System.out.println(payloads.get("NextToken"));
-                System.out.println(nextToken);
-                System.out.println(builder.toUriString());
-//                break;
+                ResponseEntity<Map> response = restTemplate.exchange(
+                        fetchUrl, HttpMethod.GET, entity, Map.class
+                );
 
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new RuntimeException("Failed request: " + response.getStatusCode());
                 }
+
+                Map<String, Object> payloads = (Map<String, Object>) response.getBody().get("payload");
+                if (payloads == null) break;
+
+                nextToken = (String) payloads.get("NextToken");
 
                 List<Map<String, Object>> orders = (List<Map<String, Object>>) payloads.get("Orders");
                 if (orders == null || orders.isEmpty()) break;
@@ -76,7 +79,7 @@ public class AmazonOrderController {
                     Map<String, Object> fullOrder = new HashMap<>();
                     fullOrder.put("summary", order);
 
-                    // Get order detail
+                    // Order detail
                     try {
                         String detailUrl = BASE_URL + "/orders/v0/orders/" + orderId;
                         ResponseEntity<Map> detailRes = restTemplate.exchange(detailUrl, HttpMethod.GET, entity, Map.class);
@@ -85,7 +88,7 @@ public class AmazonOrderController {
                         fullOrder.put("detail", Map.of("error", ex.getMessage()));
                     }
 
-                    // Get order items
+                    // Order items
                     try {
                         String itemsUrl = BASE_URL + "/orders/v0/orders/" + orderId + "/orderItems";
                         ResponseEntity<Map> itemsRes = restTemplate.exchange(itemsUrl, HttpMethod.GET, entity, Map.class);
@@ -105,10 +108,9 @@ public class AmazonOrderController {
                     totalFetched++;
                 }
 
-
             } while (nextToken != null && totalFetched < MAX_ORDERS);
 
-            // Save result to file
+            // Save result
             try {
                 mapper.writerWithDefaultPrettyPrinter()
                         .writeValue(new File("orders.json"), fullOrders);
@@ -125,4 +127,5 @@ public class AmazonOrderController {
                     .body("Error fetching full Amazon orders: " + e.getMessage());
         }
     }
+
 }
